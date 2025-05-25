@@ -1,0 +1,97 @@
+- name: opensdn config
+  hosts: opensdn_role_config
+  gather_facts: no
+  tasks:
+  - ansible.builtin.include_role:
+      name: opensdn_config
+    tags:
+      - start
+  vars_files:
+     - "{{ playbook_dir }}/roles/opensdn/defaults/main.yml"
+  vars:
+    instance_data: "{{ instances[hostvars[inventory_hostname].instance_name] }}"
+    instance_name: "{{ hostvars[inventory_hostname].instance_name }}"
+  tags:
+    - config
+
+- name: opensdn webui
+  hosts: opensdn_role_webui
+  gather_facts: no
+  tasks:
+  - ansible.builtin.include_role:
+      name: opensdn_webui
+    tags:
+      - start
+  vars_files:
+     - "{{ playbook_dir }}/roles/opensdn/defaults/main.yml"
+  vars:
+    instance_data: "{{ instances[hostvars[inventory_hostname].instance_name] }}"
+    instance_name: "{{ hostvars[inventory_hostname].instance_name }}"
+  tags:
+    - webui
+
+- name: opensdn redis
+  hosts: opensdn_role_webui, opensdn_role_analytics
+  gather_facts: no
+  tasks:
+  - ansible.builtin.include_role:
+      name: opensdn_redis
+    tags:
+      - start
+  vars_files:
+     - "{{ playbook_dir }}/roles/opensdn/defaults/main.yml"
+  vars:
+    instance_data: "{{ instances[hostvars[inventory_hostname].instance_name] }}"
+    instance_name: "{{ hostvars[inventory_hostname].instance_name }}"
+  tags:
+    - webui
+    - analytics
+
+
+- name: opensdn analytics
+  hosts: opensdn_role_analytics
+  gather_facts: no
+  tasks:
+  - ansible.builtin.include_role:
+      name: opensdn_analytics
+    tags:
+      - start
+  vars_files:
+     - "{{ playbook_dir }}/roles/opensdn/defaults/main.yml"
+  vars:
+    instance_data: "{{ instances[hostvars[inventory_hostname].instance_name] }}"
+    instance_name: "{{ hostvars[inventory_hostname].instance_name }}"
+  tags:
+    - analytics
+
+- name: opensdn analytics alarm
+  hosts: opensdn_role_analytics_alarm
+  gather_facts: no
+  tasks:
+  - ansible.builtin.include_role:
+      name: opensdn_analytics_alarm
+    tags:
+      - start
+  vars_files:
+     - "{{ playbook_dir }}/roles/opensdn/defaults/main.yml"
+  vars:
+    instance_data: "{{ instances[hostvars[inventory_hostname].instance_name] }}"
+    instance_name: "{{ hostvars[inventory_hostname].instance_name }}"
+  tags:
+    - analytics_alarm
+
+- name: opensdn analytics snmp
+  hosts: opensdn_role_analytics_snmp
+  gather_facts: no
+  tasks:
+  - ansible.builtin.include_role:
+      name: opensdn_analytics_snmp
+    tags:
+      - start
+  vars_files:
+     - "{{ playbook_dir }}/roles/opensdn/defaults/main.yml"
+  vars:
+    instance_data: "{{ instances[hostvars[inventory_hostname].instance_name] }}"
+    instance_name: "{{ hostvars[inventory_hostname].instance_name }}"
+  tags:
+    - analytics_snmp

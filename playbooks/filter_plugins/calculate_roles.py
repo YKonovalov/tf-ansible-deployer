@@ -45,8 +45,8 @@ class FilterModule(object):
         self.os_roles = OpenstackCluster(instances_dict, contrail_configuration, kolla_config)
         instances, deleted_nodes_dict = self.os_roles.discover_openstack_roles(hostvars)
 
-        return str({"node_roles_dict": instances,
-                    "deleted_nodes_dict": deleted_nodes_dict})
+        return {"node_roles_dict": instances,
+                    "deleted_nodes_dict": deleted_nodes_dict}
 
     def calculate_opensdn_roles(self, existing_dict, api_server_list,
                                 instances_dict, global_configuration,
@@ -59,15 +59,15 @@ class FilterModule(object):
         if not isinstance(enable_destroy, bool):
             enable_destroy = str(enable_destroy).lower() == 'true'
         if not enable_destroy:
-            return str(empty_result)
+            return empty_result
 
         self.opensdn_roles = ContrailCluster(
             instances_dict, contrail_configuration, kolla_config)
         instances, deleted_nodes_dict, api_server_ip = self.opensdn_roles.discover_opensdn_roles()
 
-        return str({"node_roles_dict": instances,
+        return {"node_roles_dict": instances,
                     "deleted_nodes_dict": deleted_nodes_dict,
-                    "api_server_ip": api_server_ip})
+                    "api_server_ip": api_server_ip}
 
     def extract_roles(self, existing_roles, instance_data):
         existing_roles[instance_data["key"]] = dict()
@@ -99,9 +99,9 @@ class FilterModule(object):
                     if key not in instance_roles:
                         node_roles_dict[instance_data['key']]['deleted_roles'].append(role)
 
-        return str({"node_roles_dict": node_roles_dict,
+        return {"node_roles_dict": node_roles_dict,
                     "deleted_nodes_dict": deleted_nodes_dict,
-                    "api_server_ip": cluster_roles_dict["api_server_ip"]})
+                    "api_server_ip": cluster_roles_dict["api_server_ip"]}
 
 
 class OpenstackCluster(object):

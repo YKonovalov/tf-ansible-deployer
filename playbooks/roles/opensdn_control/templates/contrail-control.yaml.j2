@@ -1,4 +1,6 @@
-version: '2.4'
+{% if compose_version == 1 %}
+version: "2.4"
+{% endif %}
 volumes:
   contrail_control_dns:
 services:
@@ -70,7 +72,7 @@ services:
       options:
         max-size: "{{ control_log_max_size }}"
         max-file: "{{ control_log_max_file }}"
-{% if roles[instance_name].control.location is undefined %}
+{% if sdn_roles[instance_name].control.location is undefined %}
   named:
     image: "{{ container_registry }}/opensdn-controller-control-named:{{ contrail_version_tag }}"
     network_mode: "host"

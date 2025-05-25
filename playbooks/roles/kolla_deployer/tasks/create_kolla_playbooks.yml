@@ -87,7 +87,7 @@
     name: python3-requests
     state: absent
   when:
-    - ansible_os_family == 'RedHat' or ansible_os_family == 'Rocky'
+    - ansible_facts['os_family'] == 'RedHat' or ansible_facts['os_family'] == 'Rocky'
 
 - name: install kolla requirements
   pip:

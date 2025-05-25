@@ -1,0 +1,5 @@
+- name: "start control_only_{{ location.key }}"
+  import_role:
+    name: "{{ compose_role }}"
+  vars:
+    compose_name: "control_only_{{ location.key }}"

@@ -1,4 +1,6 @@
-version: '2.4'
+{% if compose_version == 1 %}
+version: "2.4"
+{% endif %}
 volumes:
  config_cassandra:
  config_zookeeper:
@@ -94,6 +96,7 @@ services:
       - ZOOKEEPER_NODES={{ zookeeper_nodes }}
       - ZOOKEEPER_PORTS=2888:3888
       - ZOOKEEPER_PORT=2181
+      - SERVER_JVMFLAGS=-XX:-UseContainerSupport
       - NODE_TYPE=config-database
     volumes:
       - /etc/hosts:/etc/hosts

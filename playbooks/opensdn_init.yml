@@ -1,0 +1,74 @@
+# orchestrator MUST be passed as a command line argument like so:
+#
+# ansible-playbook -i inventory/ -e orchestrator=openstack playbook/install_opensdn.yml
+#
+
+- name: Create container host group and evaluate variables for opensdn
+  hosts: localhost
+  connection: local
+  gather_facts: yes
+  pre_tasks:
+    - name: Set orchestrator if not passed
+      set_fact:
+          contrail_configuration: "{{ contrail_configuration | default({}) | combine({'CLOUD_ORCHESTRATOR': orchestrator if orchestrator is defined else 'openstack'}) }}"
+      when: contrail_configuration is not defined or contrail_configuration.CLOUD_ORCHESTRATOR is not defined
+    - name: Ensure instances have IP-addresses
+      ansible.builtin.set_fact:
+        instances: >-
+          {%- for k, v in instances.items() -%}
+            {# 1. Check/Set regular IP #}
+            {%- if 'ip' not in v -%}
+              {%- if k is ansible.utils.ip -%}
+                {%- set _ = v.update({'ip': k}) -%}
+              {%- else -%}
+                {%- set dns_ip = lookup('ansible.builtin.pipe', 'getent hosts ' ~ k).split() | first -%}
+                {%- set _ = v.update({'ip': dns_ip}) -%}
+              {%- endif -%}
+            {%- endif -%}
+            {# 2. Check/Set Private IP #}
+            {%- if 'private_ip' not in v -%}
+              {%- if v.ip is defined and v.ip is ansible.utils.ip -%}
+                {%- set _ = v.update({'private_ip': v.ip}) -%}
+              {%- elif k is ansible.utils.ip -%}
+                {%- set _ = v.update({'private_ip': k}) -%}
+              {%- else -%}
+                {%- set dns_ip = lookup('ansible.builtin.pipe', 'getent hosts ' ~ k).split() | first -%}
+                {%- set _ = v.update({'private_ip': dns_ip}) -%}
+              {%- endif -%}
+            {%- endif -%}
+          {%- endfor -%}
+          {{ instances }}
+
+    - name: Show instances
+      debug:
+          var: instances
+    - name: Expose SDN roles
+      set_fact:
+          sdn_roles: "{{ dict(instances.keys() | zip(instances.values() | map(attribute='roles'))) }}"
+      when: hostvars['localhost']['sdn_roles'] is undefined
+    - name: Expose global configuration
+      set_fact:
+          global_configuration: "{{ global_configuration | default({}) }}"
+      when: hostvars['localhost']['global_configuration'] is undefined
+    - name: Expose remote_locations configuration
+      set_fact:
+          remote_locations: "{{ remote_locations | default({}) }}"
+      when: hostvars['localhost']['remote_locations'] is undefined
+    - name: Expose provider config
+      set_fact:
+          provider_config: "{{ provider_config | default({}) }}"
+      when: hostvars['localhost']['provider_config'] is undefined
+    - name: Expose kolla_config config
+      set_fact:
+          kolla_config: "{{ kolla_config | default({}) }}"
+      when: hostvars['localhost']['kolla_config'] is undefined
+  roles:
+    - { role: pip, tags: infrastructure }
+    - opensdn_deployer
+    - { role: kolla_deployer, when: contrail_configuration.CLOUD_ORCHESTRATOR == 'openstack', tags: openstack }
+    - { role: k8s_deployer, when: contrail_configuration.CLOUD_ORCHESTRATOR == 'kubernetes',  tags: kubernetes }
+  vars_files:
+    - "{{ config_file }}"
+  tags: always
+  environment:
+    - "{{ contrail_ansible_environment | default({})}}"

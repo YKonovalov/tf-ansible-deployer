@@ -1,0 +1,43 @@
+- name: "ensure OpenSDN vrouter module exists and is current if agent is running"
+  include_tasks:
+    file: main_kernel_module.yml
+  when:
+    - agent_container.State == 'running'
+    - is_new_module
+  vars:
+    is_new_module: "{{
+     current_kernel_vrouter_module_filename.rc is defined and
+     current_kernel_vrouter_module_filename.rc == 0 and
+     current_kernel_vrouter_module_filename.stdout is defined and
+     kernelinit_container.Image != kernelinit_image_new
+    }}"
+
+- name: "stop OpenSDN vrouter"
+  include_tasks:
+    file: main_kernel_stop.yml
+  when:
+    - agent_container.State == 'running'
+    - is_new_module or kernel_module_needs_reload
+  vars:
+    is_new_module: "{{
+     current_kernel_vrouter_module_filename.rc is defined and
+     current_kernel_vrouter_module_filename.rc == 0 and
+     current_kernel_vrouter_module_filename.stdout is defined and
+     kernelinit_container.Image != kernelinit_image_new
+    }}"
+    kernel_module_needs_reload: "{{
+     srcversion_installed.rc is defined and
+     srcversion_installed.rc==0 and
+     srcversion_loaded.rc is defined and
+     srcversion_loaded.rc == 0 and
+     srcversion_installed.stdout != srcversion_loaded.stdout and
+     kernelinit_container.Image == kernelinit_image_new and
+     kernelinit_container.State == 'exited' and
+     kernelinit_container.ExitCode == 0
+    }}"
+
+- name: "start OpenSDN vrouter"
+  ansible.builtin.include_role:
+    name: "{{ compose_role }}"
+  vars:
+    compose_name: vrouter

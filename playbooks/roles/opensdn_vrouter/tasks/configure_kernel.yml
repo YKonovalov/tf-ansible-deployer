@@ -1,0 +1,50 @@
+- name: set vrouter kernel init image name
+  set_fact:
+    vrouter_kernel_init_img_name: "opensdn-vrouter-kernel{{ '-build' if ansible_facts['os_family'] == 'Debian' else '' }}-init"
+
+- name: create OpenSDN vrouter compose file
+  template:
+    src: contrail-vrouter.yaml.j2
+    dest: "/etc/contrail/vrouter/docker-compose.yaml"
+
+- name: "read filename of vrouter module for running kernel"
+  command: modinfo vrouter -F filename
+  register: current_kernel_vrouter_module_filename
+  failed_when: current_kernel_vrouter_module_filename.rc not in [0, 1]
+  changed_when: false
+
+- name: "read srcversion for loaded vrouter kernel module"
+  command: cat /sys/module/vrouter/srcversion
+  register: srcversion_loaded
+  failed_when: srcversion_loaded.rc not in [0, 1]
+  changed_when: false
+
+- name: "read srcversion for installed vrouter kernel module"
+  command: modinfo vrouter -F srcversion
+  register: srcversion_installed
+  failed_when: srcversion_installed.rc not in [0, 1]
+  changed_when: false
+
+- name: "query vrouter-kernel-init container data"
+  ansible.builtin.include_role:
+    name: "{{ compose_role }}"
+    apply:
+      check_mode: true
+  vars:
+    compose_state: stopped
+    compose_name: vrouter
+    compose_services: vrouter-kernel-init
+    compose_pull: never
+    compose_recreate: never
+
+- name: "parse container data vrouter-kernel-init"
+  set_fact:
+    kernelinit_container: "{{ compose_output.containers | selectattr('Service', 'equalto', 'vrouter-kernel-init') | first | default({'State':''}) }}"
+
+- name: "parse container data vrouter-agent"
+  set_fact:
+    agent_container: "{{ compose_output.containers | selectattr('Service', 'equalto', 'vrouter-agent') | first | default({'State':''}) }}"
+
+- name: "define kernel-init image to load"
+  set_fact:
+    kernelinit_image_new: "{{ container_registry }}/{{ vrouter_kernel_init_img_name }}:{{ contrail_version_tag }}"

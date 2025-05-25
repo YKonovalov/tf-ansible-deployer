@@ -1,10 +1,7 @@
-- name: update contrail k8s kube-manager image
-  shell: "docker pull {{ container_registry }}/{{ item }}:{{ contrail_version_tag }}"
-  register: res
-  retries: 5
-  until: res.rc == 0
-  with_items:
-    - opensdn-kubernetes-kube-manager
+- name: "update kubemanager_{{ contrail_configuration.get('KUBERNETES_CLUSTER_NAME', 'k8s') }} images"
+  ansible.builtin.include_role:
+    name: "{{ compose_pull_role }}"
+  vars:
+    compose_name: "kubemanager_{{ contrail_configuration.get('KUBERNETES_CLUSTER_NAME', 'k8s') }}"
   when:
     - contrail_configuration.UPDATE_IMAGES is undefined or contrail_configuration.UPDATE_IMAGES != false
-    - roles[instance_name].kubemanager is defined and k8s_master_ip is defined and k8s_master_name is defined

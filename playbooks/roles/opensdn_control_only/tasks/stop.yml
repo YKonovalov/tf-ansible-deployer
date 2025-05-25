@@ -1,11 +1,5 @@
----
-- name: Stop control only
-  docker_compose:
-    project_src: "/etc/contrail/control_only_{{ location.key }}"
-    state: absent
-  environment:
-    DOCKER_CLIENT_TIMEOUT: '120'
-    COMPOSE_HTTP_TIMEOUT: '120'
+- name: call control_only stop
+  include_tasks: "do-stop.yml"
   with_dict: "{{ remote_locations }}"
   loop_control:
     loop_var: location

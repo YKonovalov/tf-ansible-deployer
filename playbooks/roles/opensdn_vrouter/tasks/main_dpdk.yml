@@ -1,0 +1,8 @@
+- name: "start OpenSDN dpdk vrouter"
+  ansible.builtin.include_role:
+    name: "{{ compose_role }}"
+  vars:
+    compose_name: vrouter
+- name: "Restart nova-compute"
+  shell: "docker restart nova_compute"
+  ignore_errors: yes

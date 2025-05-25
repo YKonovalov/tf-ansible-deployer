@@ -1,11 +1,7 @@
-- name: update contrail webui image
-  shell: "docker pull {{ container_registry }}/{{ item }}:{{ contrail_version_tag }}"
-  register: res
-  retries: 5
-  until: res.rc == 0
-  with_items:
-    - opensdn-controller-webui-web
-    - opensdn-controller-webui-job
+- name: "update webui images"
+  ansible.builtin.include_role:
+    name: "{{ compose_pull_role }}"
+  vars:
+    compose_name: webui
   when:
     - contrail_configuration.UPDATE_IMAGES is undefined or contrail_configuration.UPDATE_IMAGES != false
-    - roles[instance_name].webui is defined

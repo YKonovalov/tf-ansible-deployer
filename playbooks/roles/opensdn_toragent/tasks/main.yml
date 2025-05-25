@@ -1,7 +1,5 @@
----
-
 - name: Create toragent-s
-  include_tasks: "toragent.yml toragent_name={{ 'toragent_' + toragent.key }} toragent_data={{ toragent.value }}"
-  with_dict: "{{ roles[instance_name].toragent }}"
+  include: "toragent_restart.yml toragent_name={{ 'toragent_' + toragent.key }} toragent_data={{ toragent.value }}"
+  with_dict: "{{ sdn_roles[instance_name].toragent }}"
   loop_control:
     loop_var: toragent

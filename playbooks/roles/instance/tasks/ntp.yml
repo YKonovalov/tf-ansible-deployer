@@ -11,7 +11,7 @@
 
 - name: set ntp service name
   set_fact:
-    ntp_svc_name: "{{ 'ntp' if ansible_os_family == 'Debian' else 'ntpd' }}"
+    ntp_svc_name: "{{ 'ntp' if ansible_facts['os_family'] == 'Debian' else 'ntpd' }}"
 
 - name: stop ntp service
   service: name={{ ntp_svc_name }} state=stopped enabled=yes
@@ -35,4 +35,4 @@
     name: chronyd
     enabled: no
   ignore_errors: yes
-  when: ansible_os_family == 'RedHat' or ansible_os_family == 'Rocky'
+  when: ansible_facts['os_family'] == 'RedHat' or ansible_facts['os_family'] == 'Rocky'
