@@ -1,0 +1,33 @@
+- name: "Query {{ compose_name }} containers data"
+  community.docker.docker_host_info:
+    containers: true
+    containers_all: true  # Vital to include exited/stopped container instances
+    containers_filters:
+      label: "com.docker.compose.project={{ compose_name }}"
+    verbose_output: true
+  register: host_facts
+
+- name: "Parse {{ compose_name }} containers data"
+  ansible.builtin.set_fact:
+    compose_data: >-
+      {%- set ns = namespace(results={}) -%}
+      {%- for container in (host_facts.containers | default([]) | sort(attribute='Created', reverse=true)) -%}
+        {%- set srv = container.Labels['com.docker.compose.service'] | default(none) -%}
+        {%- if srv and srv not in ns.results -%}
+          {%- set state = container.State | default('unknown') -%}
+          {%- set status_str = container.Status | default('Exited (254) 5 hours ago') -%}
+          {%- set code_match = status_str | regex_search('\((\d+)\)', '\\1') -%}
+          {%- set code = (code_match | first | int) if code_match else none -%}
+          {%- set current_srv = {
+            srv: {
+              'image': container.Image | default('unknown'),
+              'is_running': state == 'running',
+              'is_exited': state == 'exited',
+              'exit_code': code if state == 'exited' else none
+            }
+          } -%}
+          {%- set ns.results = ns.results | combine(current_srv) -%}
+        {%- endif -%}
+      {%- endfor -%}
+      {{ ns.results }}
+

@@ -1,0 +1,38 @@
+- name: create /etc/contrail/analytics_database
+  file:
+    path: /etc/contrail/analytics_database
+    state: directory
+    recurse: yes
+
+- name: set cassandra seeds to ANALYTICSDB_NODES if defined
+  set_fact:
+    cassandra_seeds: "{{ contrail_configuration.ANALYTICSDB_NODES }}"
+  when: contrail_configuration.ANALYTICSDB_NODES is defined
+
+- name: set cassandra seeds to CONTROLLER_NODES if ANALYTICSDB_NODES not defined
+  set_fact:
+    cassandra_seeds: "{{ contrail_configuration.CONTROLLER_NODES }}"
+  when: contrail_configuration.CONTROLLER_NODES is defined and contrail_configuration.ANALYTICSDB_NODES is undefined
+
+- name: "prepare configuration"
+  set_fact:
+    config_content: |
+      {% for key, value in (
+        contrail_configuration | default({}) | ansible.builtin.combine(
+          instances[instance_name].contrail_configuration | default({}),
+          sdn_roles[instance_name].analytics_database | default({})
+        )
+      ).items() %}
+      {{ key }}={{ value }}
+      {% endfor %}
+
+- name: "create /etc/contrail/common_analytics_database.env"
+  copy:
+    content: "{{ config_content }}"
+    dest: "/etc/contrail/common_analytics_database.env"
+    mode: "0640"
+
+- name: "create analytics_database compose file"
+  template:
+    src: contrail-analytics-database.yaml.j2
+    dest: /etc/contrail/analytics_database/docker-compose.yaml

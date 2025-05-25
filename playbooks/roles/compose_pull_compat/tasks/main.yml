@@ -1,0 +1,19 @@
+- name: Read {{ compose_name }} docker-compose.yml file
+  ansible.builtin.slurp:
+    src: "{{ compose_src | default(default_compose_src + compose_name) }}/docker-compose.yaml"
+  register: remote_compose_file
+
+- name: Parse YAML and extract image names
+  ansible.builtin.set_fact:
+    docker_images: >-
+      {{ (remote_compose_file.content | b64decode | from_yaml).services.values() 
+      | selectattr('image', 'defined') 
+      | map(attribute='image') 
+      | list }}
+
+- name: Pull {{ compose_name }} images
+  community.general.docker_image:
+    name: "{{ item }}"
+    source: pull
+  loop: "{{ docker_images }}"
+

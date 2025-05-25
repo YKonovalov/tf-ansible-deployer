@@ -1,0 +1,7 @@
+- name: "{{ compose_name }}"
+  community.docker.docker_compose_v2_pull:
+    project_src: "{{ compose_src        | default(default_compose_src + compose_name) }}"
+    policy:      "{{ compose_policy     | default(default_policy) }}"
+    services:    "{{ compose_services   | default(omit) }}"
+  environment:   "{{ docker_compose_env | default(default_compose_environment) }}"
+  register: compose_pull_output

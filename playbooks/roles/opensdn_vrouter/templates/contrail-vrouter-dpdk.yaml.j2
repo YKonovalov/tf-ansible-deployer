@@ -1,4 +1,6 @@
-version: '2.4'
+{% if compose_version == 1 %}
+version: "2.4"
+{% endif %}
 services:
   node-init:
     image: "{{ container_registry }}/opensdn-node-init:{{ contrail_version_tag }}"

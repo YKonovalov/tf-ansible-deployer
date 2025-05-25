@@ -1,0 +1,20 @@
+- name: create /etc/contrail/analytics_alarm
+  file:
+    path: /etc/contrail/analytics_alarm
+    state: directory
+    recurse: yes
+
+- name: set zookeeper nodes to CONFIGDB_NODES if defined
+  set_fact:
+    zookeeper_nodes: "{{ contrail_configuration.CONFIGDB_NODES }}"
+  when: contrail_configuration.CONFIGDB_NODES is defined
+
+- name: set zookeeper nodes to CONTROLLER_NODES if CONFIGDB_NODES not defined
+  set_fact:
+    zookeeper_nodes: "{{ contrail_configuration.CONTROLLER_NODES }}"
+  when: contrail_configuration.CONTROLLER_NODES is defined and contrail_configuration.CONFIGDB_NODES is undefined
+
+- name: "create analytics_alarm compose file"
+  template:
+    src: contrail-analytics-alarm.yaml.j2
+    dest: /etc/contrail/analytics_alarm/docker-compose.yaml

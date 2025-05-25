@@ -1,4 +1,6 @@
-version: '2.4'
+{% if compose_version == 1 %}
+version: "2.1"
+{% endif %}
 services:
   node-init:
     image: "{{ container_registry }}/opensdn-node-init:{{ contrail_version_tag }}"
@@ -61,7 +63,7 @@ services:
       - /usr/src:/usr/src
       - /lib/modules:/lib/modules
       - /bin:/host/bin
-{% if ansible_os_family == 'RedHat' or ansible_os_family == 'Rocky' %}
+{% if ansible_facts['os_family'] == 'RedHat' or ansible_facts['os_family'] == 'Rocky' %}
       - /etc/sysconfig/network-scripts:/etc/sysconfig/network-scripts
 {% endif %}
     volumes_from:
@@ -81,7 +83,7 @@ services:
       - /etc:/host/etc
       - /var/lib/contrail:/var/lib/contrail:shared
       - /var/run:/var/run
-{% if ansible_os_family == 'RedHat' or ansible_os_family == 'Rocky' %}
+{% if ansible_facts['os_family'] == 'RedHat' or ansible_facts['os_family'] == 'Rocky' %}
       - /etc/sysconfig/network-scripts:/etc/sysconfig/network-scripts
 {% endif %}
       - /dev:/dev

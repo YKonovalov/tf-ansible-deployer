@@ -1,0 +1,28 @@
+- name: create /etc/contrail/webui
+  file:
+    path: /etc/contrail/webui
+    state: directory
+    recurse: yes
+
+- name: "prepare configuration"
+  set_fact:
+    config_content: |
+      {% for key, value in (
+        contrail_configuration | default({}) | ansible.builtin.combine(
+          instances[instance_name].contrail_configuration | default({}),
+          sdn_roles[instance_name].webui | default({})
+        )
+      ).items() %}
+      {{ key }}={{ value }}
+      {% endfor %}
+
+- name: "create /etc/contrail/common_webui.env"
+  copy:
+    content: "{{ config_content }}"
+    dest: "/etc/contrail/common_webui.env"
+    mode: "0640"
+
+- name: "create webui compose file"
+  template:
+    src: contrail-webui.yaml.j2
+    dest: "/etc/contrail/webui/docker-compose.yaml"

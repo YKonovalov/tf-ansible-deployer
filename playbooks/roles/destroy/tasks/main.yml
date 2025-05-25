@@ -11,13 +11,14 @@
   register: rc
   with_items: "{{ dir_out.files }}"
 
-- docker_compose:
-    project_src: "{{ item.item.path }}"
-    state: absent
-    remove_images: all
-    remove_volumes: yes
-  environment:
-    DOCKER_CLIENT_TIMEOUT: '120'
-    COMPOSE_HTTP_TIMEOUT: '120'
+
+- ansible.builtin.include_role:
+    name: "{{ compose_role }}"
+  vars:
+    compose_name: "{{ item.item.path.split('/')[3] }}"
+    compose_src:  "{{ item.item.path }}"
+    compose_state: absent
+    compose_remove_images: all
+    compose_remove_volumes: yes
   with_items: "{{ rc.results }}"
   when: item.stat.exists == true

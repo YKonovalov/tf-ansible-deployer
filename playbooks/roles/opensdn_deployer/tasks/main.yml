@@ -1,51 +1,42 @@
 - name: create container host group
-  include_tasks: create_container_host_group.yml
+  include_tasks:
+    file: create_container_host_group.yml
   tags:
-    - install_contrail
+    - always
 
 - name: build node lists
-  include_tasks: build_node_lists.yml
+  include_tasks:
+    file: build_node_lists.yml
   tags:
     - always
 
 - name: set global variables
-  include_tasks: set_global_variables.yml
+  include_tasks:
+    file: set_global_variables.yml
   tags:
     - always
 
 - name: set default variables
-  include_tasks: set_default_variables.yml
+  include_tasks:
+    file: set_default_variables.yml
   tags:
     - always
 
 - name: set contrail variables
-  include_tasks: set_contrail_variables.yml
+  include_tasks:
+    file: set_contrail_variables.yml
   tags:
     - always
 
-- name: add gce container hosts
-  include_tasks: add_gce_container_hosts.yml
-  when: item.value.provider=='gce'
-  with_dict: "{{ instances }}"
-  tags:
-    - configure_gce_instances
-    - install_contrail
-
-- name: add aws container hosts
-  include_tasks: add_aws_container_hosts.yml
-  when: item.value.provider=='aws'
-  with_dict: "{{ instances }}"
-  tags:
-    - configure_aws_instances
-    - install_contrail
-
 - name: build cluster node role lists
-  include_tasks: cluster_node_role_lists.yml
+  include_tasks:
+    file: cluster_node_role_lists.yml
   tags:
     - always
 
 - name: Configure certs
-  include_tasks: configure_certs.yml
+  include_tasks:
+    file: configure_certs.yml
   when:
     - contrail_configuration is defined
     - (( contrail_configuration.SSL_ENABLE is defined ) and

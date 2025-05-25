@@ -1,0 +1,10 @@
+- name: create /etc/contrail/analytics_snmp
+  file:
+    path: /etc/contrail/analytics_snmp
+    state: directory
+    recurse: yes
+
+- name: "create contrail analytics_snmp compose file"
+  template:
+    src: contrail-analytics-snmp.yaml.j2
+    dest: /etc/contrail/analytics_snmp/docker-compose.yaml

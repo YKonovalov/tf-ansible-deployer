@@ -1,103 +1,25 @@
----
-  - name: Create container host group and evaluate variables for Contrail
-    hosts: localhost
-    connection: local
-    gather_facts: yes
-    pre_tasks:
-      - name: Expose instances
-        set_fact:
-            instances: "{{ instances }}"
-        when: hostvars['localhost']['instances'] is undefined
-      - name: Expose global configuration
-        set_fact:
-            global_configuration: "{{ global_configuration | default({}) }}"
-        when: hostvars['localhost']['global_configuration'] is undefined
-      - name: Expose remote_locations configuration
-        set_fact:
-            remote_locations: "{{ remote_locations | default({}) }}"
-        when: hostvars['localhost']['remote_locations'] is undefined
-      - name: Expose provider config
-        set_fact:
-            provider_config: "{{ provider_config | default({}) }}"
-        when: hostvars['localhost']['provider_config'] is undefined
-    roles:
-      - opensdn_deployer
-      - k8s_deployer
-    vars_files:
-      - "{{ config_file }}"
-    tags: always
-    environment:
-      - "{{ contrail_ansible_environment | default({})}}"
+- name: Prepare Docker
+  hosts:
+  - opensdn_role_vrouter
+  - opensdn_role_compute_legacy
+  gather_facts: yes
+  roles:
+    - docker
+  vars_files:
+    - "{{ hostvars['localhost'].config_file }}"
+  tags: infrastructure
 
-  - name: Prepare Docker
-    hosts: container_hosts
-    gather_facts: yes
-    roles:
-      - docker
-    vars_files:
-      - "{{ hostvars['localhost'].config_file }}"
+- name: Set compose version
+  hosts:
+  - opensdn_role_vrouter
+  - opensdn_role_compute_legacy
+  gather_facts: no
+  roles:
+    - compose
+  tags: always
 
-  - name: Stop Vrouter and update images
-    hosts: container_hosts
-    gather_facts: yes
-    tasks:
-      - include_role:
-          name: opensdn_rsyslogd
-          tasks_from: "{{ item }}"
-        with_items:
-          - update_images
-          - stop
-        when: roles[instance_name].vrouter is defined and ansible_system == 'Linux'
-        tags:
-          - vrouter
-          - rsyslogd
-      - include_role:
-          name: opensdn_vrouter
-          tasks_from: "{{ item }}"
-        with_items:
-          - update_images
-          - stop
-        when: roles[instance_name].vrouter is defined and ansible_system == 'Linux'
-        tags: vrouter
-    vars:
-      - roles: "{{ hostvars['localhost'].roles }}"
-      - instance_name: "{{ hostvars[inventory_hostname].instance_name }}"
-      - contrail_configuration: "{{ hostvars['localhost'].contrail_configuration }}"
-      - global_configuration: "{{ hostvars['localhost'].global_configuration }}"
-      - container_registry: "{{ hostvars['localhost'].container_registry }}"
-      - contrail_version_tag: "{{ hostvars['localhost'].contrail_version_tag }}"
-    environment:
-      - https_proxy: "{{ global_configuration.HTTPS_PROXY if global_configuration.HTTPS_PROXY is defined else contrail_configuration.HTTPS_PROXY | default('') }}"
-      - http_proxy: "{{ global_configuration.HTTP_PROXY if global_configuration.HTTP_PROXY is defined else contrail_configuration.HTTP_PROXY | default('') }}"
-      - "{{ contrail_ansible_environment | default({}) }}"
-    tags: always
+- name: ZIU stage 0 configure and update images
+  ansible.builtin.import_playbook: ziu_compute_update_images.yml
 
-  - name: Start ryslogd and Vrouter
-    hosts: container_hosts
-    gather_facts: yes
-    tasks:
-      - include_vars:
-          dir: "{{ playbook_dir }}/roles/opensdn/defaults"
-          extensions: ['yml']
-      - include_role:
-          name: opensdn_vrouter
-        when: roles[instance_name].vrouter is defined and ansible_system == 'Linux'
-        tags: vrouter
-      - include_role:
-          name: opensdn_rsyslogd
-        when: roles[instance_name].vrouter is defined and ansible_system == 'Linux'
-        tags:
-          - vrouter
-          - rsyslogd
-    vars:
-      - roles: "{{ hostvars['localhost'].roles }}"
-      - instance_name: "{{ hostvars[inventory_hostname].instance_name }}"
-      - instances: "{{ hostvars['localhost'].instances }}"
-      - contrail_configuration: "{{ hostvars['localhost'].contrail_configuration }}"
-      - global_configuration: "{{ hostvars['localhost'].global_configuration }}"
-      - container_registry: "{{ hostvars['localhost'].container_registry }}"
-      - contrail_version_tag: "{{ hostvars['localhost'].contrail_version_tag }}"
-    environment:
-      - https_proxy: "{{ global_configuration.HTTPS_PROXY if global_configuration.HTTPS_PROXY is defined else contrail_configuration.HTTPS_PROXY | default('') }}"
-      - http_proxy: "{{ global_configuration.HTTP_PROXY if global_configuration.HTTP_PROXY is defined else contrail_configuration.HTTP_PROXY | default('') }}"
-      - "{{ contrail_ansible_environment | default({}) }}"
+- name: ZIU stage 1 restart services
+  ansible.builtin.import_playbook: ziu_compute_restart.yml

@@ -1,8 +1,6 @@
----
 - name: "stop redis"
-  docker_compose:
-    project_src: /etc/contrail/redis
-    state: absent
-  environment:
-    DOCKER_CLIENT_TIMEOUT: '120'
-    COMPOSE_HTTP_TIMEOUT: '120'
+  ansible.builtin.include_role:
+    name: "{{ compose_role }}"
+  vars:
+    compose_name: redis
+    compose_state: absent

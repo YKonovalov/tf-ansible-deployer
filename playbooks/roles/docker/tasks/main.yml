@@ -1,6 +1,6 @@
 ---
 
-# ansible<3 detects ansible_os_family as Rocky and ansible==6.x detects it as RedHat
+# ansible<3 detects ansible_facts['os_family'] as Rocky and ansible==6.x detects it as RedHat
 # so include Rocky by ansible_distribution var (it's same for both versions)
 - name: include rocky specific
   include_tasks: "Rocky.yml"
@@ -8,7 +8,7 @@
     - ansible_distribution == 'Rocky'
 # and leave other distributions as is (TODO: update redhat playbook to support other than centos7)
 - name: include OS specific
-  include_tasks: "{{ ansible_os_family }}.yml"
+  include_tasks: "{{ ansible_facts['os_family'] }}.yml"
   when:
     - ansible_distribution != 'Rocky'
 

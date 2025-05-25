@@ -1,43 +1,7 @@
-- name: set vrouter kernel init image name
-  set_fact:
-    vrouter_kernel_init_img_name: opensdn-vrouter-kernel-build-init
-  when:
-    - ansible_os_family == 'Debian'
-
-- name: set vrouter kernel init image name
-  set_fact:
-    vrouter_kernel_init_img_name: opensdn-vrouter-kernel-init
-  when:
-    - ansible_os_family == 'RedHat' or ansible_os_family == 'Rocky'
-
-- name: update image
-  shell: "docker pull {{ container_registry }}/{{ item }}:{{ contrail_version_tag }}"
-  register: res
-  retries: 5
-  until: res.rc == 0
-  with_items:
-    - opensdn-node-init
-    - opensdn-nodemgr
-    - opensdn-provisioner
-    - "{{ vrouter_kernel_init_img_name }}"
-    - opensdn-vrouter-agent
+- name: "update vrouter images"
+  ansible.builtin.include_role:
+    name: "{{ compose_pull_role }}"
+  vars:
+    compose_name: vrouter
   when:
     - contrail_configuration.UPDATE_IMAGES is undefined or contrail_configuration.UPDATE_IMAGES != false
-    - roles[instance_name].vrouter.AGENT_MODE is undefined or roles[instance_name].vrouter.AGENT_MODE != 'dpdk'
-
-- name: update image for dpdk vrouter
-  shell: "docker pull {{ container_registry }}/{{ item }}:{{ contrail_version_tag }}"
-  register: res
-  retries: 5
-  until: res.rc == 0
-  with_items:
-    - opensdn-node-init
-    - opensdn-nodemgr
-    - opensdn-provisioner
-    - opensdn-vrouter-kernel-init-dpdk
-    - opensdn-vrouter-agent-dpdk
-    - opensdn-vrouter-agent
-  when:
-    - contrail_configuration.UPDATE_IMAGES is undefined or contrail_configuration.UPDATE_IMAGES != false
-    - roles[instance_name].vrouter.AGENT_MODE is defined
-    - roles[instance_name].vrouter.AGENT_MODE == 'dpdk'

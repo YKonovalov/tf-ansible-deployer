@@ -1,12 +1,5 @@
-- name: update contrail toragent image
-  shell: "docker pull {{ container_registry }}/{{ item }}:{{ contrail_version_tag }}"
-  register: res
-  retries: 5
-  until: res.rc == 0
-  with_items:
-    - opensdn-node-init
-    - opensdn-tor-agent
-    - opensdn-provisioner
-  when:
-    - contrail_configuration.UPDATE_IMAGES is undefined or contrail_configuration.UPDATE_IMAGES != false
-    - roles[instance_name].toragent is defined
+- name: Update toragent-s
+  include: "toragent_update_images.yml toragent_name={{ 'toragent_' + toragent.key }} toragent_data={{ toragent.value }}"
+  with_dict: "{{ sdn_roles[instance_name].toragent }}"
+  loop_control:
+    loop_var: toragent

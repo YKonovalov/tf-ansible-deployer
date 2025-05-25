@@ -1,0 +1,6 @@
+- name: "stop compute-legacy"
+  ansible.builtin.include_role:
+    name: "{{ compose_role }}"
+  vars:
+    compose_name: compute-legacy
+    compose_state: absent

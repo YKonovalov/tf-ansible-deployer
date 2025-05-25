@@ -1,0 +1,5 @@
+- name: Configure toragent-s
+  include: "toragent_configure.yml toragent_name={{ 'toragent_' + toragent.key }} toragent_data={{ toragent.value }}"
+  with_dict: "{{ sdn_roles[instance_name].toragent }}"
+  loop_control:
+    loop_var: toragent

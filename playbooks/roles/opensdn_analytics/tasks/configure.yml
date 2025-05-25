@@ -1,0 +1,28 @@
+- name: create /etc/contrail/analytics
+  file:
+    path: /etc/contrail/analytics
+    state: directory
+    recurse: yes
+
+- name: "prepare configuration"
+  set_fact:
+    config_content: |
+      {% for key, value in (
+        contrail_configuration | default({}) | ansible.builtin.combine(
+          instances[instance_name].contrail_configuration | default({}),
+          sdn_roles[instance_name].analytics | default({})
+        )
+      ).items() %}
+      {{ key }}={{ value }}
+      {% endfor %}
+
+- name: "create /etc/contrail/common_analytics.env"
+  copy:
+    content: "{{ config_content }}"
+    dest: "/etc/contrail/common_analytics.env"
+    mode: "0640"
+
+- name: "create analytics compose file"
+  template:
+    src: contrail-analytics.yaml.j2
+    dest: /etc/contrail/analytics/docker-compose.yaml

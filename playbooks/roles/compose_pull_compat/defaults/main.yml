@@ -1,0 +1,6 @@
+---
+default_compose_src: "/etc/contrail/"
+default_policy: "always"
+default_compose_environment:
+  DOCKER_CLIENT_TIMEOUT: '120'
+  COMPOSE_HTTP_TIMEOUT: '120'

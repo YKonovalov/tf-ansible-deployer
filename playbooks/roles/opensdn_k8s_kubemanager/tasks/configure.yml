@@ -1,0 +1,32 @@
+- name: set kube_cluster_name
+  set_fact:
+    kube_cluster_name: "{{ contrail_configuration.get('KUBERNETES_CLUSTER_NAME', 'k8s') }}"
+
+- name: "create /etc/contrail/kubemanager_{{ kube_cluster_name }}"
+  file:
+    path: "/etc/contrail/kubemanager_{{ kube_cluster_name }}"
+    state: directory
+    recurse: yes
+
+- name: "prepare configuration"
+  set_fact:
+    config_content: |
+      {% for key, value in (
+        contrail_configuration | default({}) | ansible.builtin.combine(
+          instances[instance_name].contrail_configuration | default({}),
+          sdn_roles[instance_name].kubemanager | default({})
+        )
+      ).items() %}
+      {{ key }}={{ value }}
+      {% endfor %}
+
+- name: "create /etc/contrail/common_kubemanager_{{ kube_cluster_name }}.env"
+  copy:
+    content: "{{ config_content }}"
+    dest: "/etc/contrail/common_kubemanager_{{ kube_cluster_name }}.env"
+    mode: "0640"
+
+- name: "create kubemanager_{{ kube_cluster_name }} compose file"
+  template:
+    src: contrail-kubemanager.yaml.j2
+    dest: /etc/contrail/kubemanager_{{ kube_cluster_name }}/docker-compose.yaml

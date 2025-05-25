@@ -1,0 +1,6 @@
+- name: "stop cni"
+  ansible.builtin.include_role:
+    name: "{{ compose_role }}"
+  vars:
+    compose_name: cni
+    compose_state: absent
