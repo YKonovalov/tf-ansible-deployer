@@ -1,18 +1,6 @@
----
-- name: create /etc/contrail/rsyslogd
-  file:
-    path: /etc/contrail/rsyslogd
-    state: directory
-    recurse: yes
-
-- name: "create rsyslogd compose file"
-  template:
-    src: contrail-rsyslogd.yaml.j2
-    dest: "/etc/contrail/rsyslogd/docker-compose.yaml"
-
 - name: "start rsyslogd"
-  docker_compose:
-    project_src: /etc/contrail/rsyslogd
-  environment:
-    DOCKER_CLIENT_TIMEOUT: '120'
-    COMPOSE_HTTP_TIMEOUT: '120'
+  include_role:
+    name: "compose"
+    tasks_from: "v{{ compose_version }}"
+  vars:
+    compose_name: rsyslogd

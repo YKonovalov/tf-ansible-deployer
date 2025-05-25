@@ -1,8 +1,6 @@
----
-- name: stop contrail analytics
-  docker_compose:
-    project_src: /etc/contrail/analytics
-    state: absent
-  environment:
-    DOCKER_CLIENT_TIMEOUT: '120'
-    COMPOSE_HTTP_TIMEOUT: '120'
+- name: "stop analytics"
+  include_role:
+    name: "compose_v{{ compose_version }}"
+  vars:
+    compose_name: analytics
+    compose_state: absent

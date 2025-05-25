@@ -1,0 +1,96 @@
+# orchestrator MUST be passed as a command line argument like so:
+#
+# ansible-playbook -i inventory/ -e orchestrator=openstack playbook/install_opensdn.yml
+#
+- name: Process hosts according to --limit
+  hosts: localhost,all
+  gather_facts: false
+  tasks:
+    - name: Store targeted hosts in all_limited var
+      delegate_to: localhost
+      delegate_facts: true
+      run_once: true
+      set_fact:
+        all_limited: "{{ ansible_play_hosts_all }}"
+  tags: always
+
+- name: Create container host group and evaluate variables for opensdn
+  hosts: localhost
+  connection: local
+  gather_facts: yes
+  pre_tasks:
+    - name: Limit
+      debug:
+          msg: "{{ ansible_limit|default('') }} {{ all_limited }} {{ ansible_limit|default('')|split(',') }}"
+    - name: Read system hosts database facts
+      ansible.builtin.getent:
+        database: hosts
+    - name: Expose instances
+      ansible.builtin.set_fact:
+        instances: >-
+          {%- for k, v in instances.items() -%}
+            {%- for attr in ['ip', 'private_ip'] if attr not in v -%}
+              {%- if k is ansible.utils.ip -%}
+                {%- set _ = v.update({attr: k}) -%}
+              {%- else -%}
+                {%- set dns_ip = getent_hosts[k] | default(lookup('community.general.dig', k)) | trim -%}
+                {%- set _ = v.update({attr: dns_ip}) -%}
+              {%- endif -%}
+            {%- endfor -%}
+          {%- endfor -%}
+          {{ instances }}
+
+    - name: Debug instances
+      debug:
+          var: instances
+#      when: hostvars['localhost']['instances'] is undefined
+    - name: Expose sdn_roles
+      set_fact:
+          sdn_roles: "{{ instances | dict2items | json_query('[].{key: key, value: value.roles}') | items2dict }}"
+      when: hostvars['localhost']['sdn_roles'] is undefined
+    - name: Expose global configuration
+      set_fact:
+          global_configuration: "{{ global_configuration | default({}) }}"
+      when: hostvars['localhost']['global_configuration'] is undefined
+    - name: Expose remote_locations configuration
+      set_fact:
+          remote_locations: "{{ remote_locations | default({}) }}"
+      when: hostvars['localhost']['remote_locations'] is undefined
+    - name: Expose provider config
+      set_fact:
+          provider_config: "{{ provider_config | default({}) }}"
+      when: hostvars['localhost']['provider_config'] is undefined
+  roles:
+    - { role: pip, tags: infrastructure }
+    - opensdn_deployer
+    - { role: kolla_deployer, when: contrail_configuration.CLOUD_ORCHESTRATOR == 'openstack', tags: openstack }
+    - { role: k8s_deployer, tags: kubernetes }
+  vars_files:
+    - "{{ config_file }}"
+  tags: always
+  environment:
+    - "{{ contrail_ansible_environment | default({})}}"
+
+- name: Process2 hosts according to --limit
+  hosts: localhost,all
+  gather_facts: false
+  tasks:
+    - name: Store targeted hosts in all_limited var
+      delegate_to: localhost
+      delegate_facts: true
+      run_once: true
+      set_fact:
+        all_limited: "{{ ansible_play_hosts_all }}"
+  tags: always
+
+- name: Create2 container host group and evaluate variables for opensdn
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  tasks:
+    - name: Limit
+      debug:
+          msg: "{{ ansible_limit|default('') }} {{ all_limited }} }}"
+#    - name: LimitE
+#      assert:
+#          msg: "stop"

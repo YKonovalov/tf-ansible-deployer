@@ -51,13 +51,16 @@
   tags:
    - always
 
-- set_fact:
-    roles: {}
-- name: add roles if defined
-  set_fact:
-    roles: "{{ roles | extract_roles(item) }}"
-  when: item.value.roles is defined
-  with_dict: "{{ instances }}"
+#- set_fact:
+#    hosts_roles: {}
+#- name: add roles if defined
+#  set_fact:
+#    hosts_roles: "{{ hosts_roles | extract_roles(item) }}"
+#  when: item.value.roles is defined
+#  with_dict: "{{ instances | dict2items | selectattr('key', 'in', all_limited) | items2dict }}"
+#- name: print roles if defined
+#  debug:
+#    msg: "{{ hosts_roles }}"
 
 - name: set vars for vanilla openstack deploy
   set_fact:

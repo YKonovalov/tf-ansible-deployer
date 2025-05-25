@@ -1,8 +1,6 @@
----
-- name: stop contrail config service
-  docker_compose:
-    project_src: /etc/contrail/config
-    state: absent
-  environment:
-    DOCKER_CLIENT_TIMEOUT: '120'
-    COMPOSE_HTTP_TIMEOUT: '120'
+- name: "stop config"
+  include_role:
+    name: "compose_v{{ compose_version }}"
+  vars:
+    compose_name: config
+    compose_state: absent

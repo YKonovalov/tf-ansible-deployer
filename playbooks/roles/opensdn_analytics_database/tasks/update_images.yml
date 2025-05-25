@@ -1,14 +1,7 @@
-- name: update contrail analytics database image
-  shell: "docker pull {{ container_registry }}/{{ item }}:{{ contrail_version_tag }}"
-  register: res
-  retries: 5
-  until: res.rc == 0
-  with_items:
-    - opensdn-node-init
-    - opensdn-nodemgr
-    - opensdn-analytics-query-engine
-    - opensdn-external-cassandra
-    - opensdn-provisioner
+- name: "update analytics_database images"
+  include_role:
+    name: "compose_pull_v{{ compose_version }}"
+  vars:
+    compose_name: analytics_database
   when:
     - contrail_configuration.UPDATE_IMAGES is undefined or contrail_configuration.UPDATE_IMAGES != false
-    - roles[instance_name].analytics_database is defined

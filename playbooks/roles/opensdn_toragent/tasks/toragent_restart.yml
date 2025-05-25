@@ -1,0 +1,5 @@
+- name: "start contrail {{ toragent_name }}"
+  import_role:
+    name: compose
+  vars:
+    compose_name: "{{ toragent_name }}"

@@ -1,0 +1,7 @@
+- name: "update control_only_{{ location.key }} images"
+  include_role:
+    name: "compose_pull_v{{ compose_version }}"
+  vars:
+    compose_name: "control_only_{{ location.key }}"
+  when:
+    - contrail_configuration.UPDATE_IMAGES is undefined or contrail_configuration.UPDATE_IMAGES != false

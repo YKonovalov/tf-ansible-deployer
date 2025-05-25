@@ -1,3 +1,26 @@
----
-# ZIU have three stages: controller -> openstack -> compute
-  - import_playbook: "ziu_{{ stage }}.yml"
+- name: OpenSDN initialize inventory and common vars
+  ansible.builtin.import_playbook: opensdn_init.yml
+
+- name: "ZIU have three stages: controller -> openstack -> compute"
+  ansible.builtin.import_playbook: "ziu_{{ stage }}.yml"
+  vars:
+    default_configuration: "{{ hostvars['localhost'].default_configuration }}"
+    provider_config: "{{ hostvars['localhost']['provider_config'] }}"
+    contrail_configuration: "{{ hostvars['localhost'].contrail_configuration }}"
+    global_configuration: "{{ hostvars['localhost'].global_configuration }}"
+    remote_locations: "{{ hostvars['localhost'].remote_locations }}"
+    locations_control_nodes: "{{ hostvars['localhost'].locations_control_nodes }}"
+    instances: "{{ hostvars['localhost'].instances }}"
+    container_registry: "{{ hostvars['localhost'].container_registry }}"
+    contrail_version_tag: "{{ hostvars['localhost'].contrail_version_tag }}"
+    sdn_roles: "{{ hostvars['localhost'].sdn_roles }}"
+    node_roles_dict: "{{ hostvars['localhost'].node_roles_dict }}"
+    api_server: "{{ hostvars['localhost'].api_server }}"
+    deleted_nodes_dict: "{{ hostvars['localhost'].deleted_nodes_dict }}"
+    k8s_master_ip: "{{ hostvars['localhost'].k8s_master_ip | default(omit) }}"
+    k8s_master_name: "{{ hostvars['localhost'].k8s_master_name | default(omit) }}"
+  environment:
+    - https_proxy: "{{ global_configuration.HTTPS_PROXY if global_configuration.HTTPS_PROXY is defined else contrail_configuration.HTTPS_PROXY | default('') }}"
+    - http_proxy: "{{ global_configuration.HTTP_PROXY if global_configuration.HTTP_PROXY is defined else contrail_configuration.HTTP_PROXY | default('') }}"
+    - "{{ contrail_ansible_environment | default({}) }}"
+  tags: always

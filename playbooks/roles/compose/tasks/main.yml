@@ -1,0 +1,6 @@
+#- name: "select compose version for {{ compose_name }}"
+#  include_tasks:
+#    file: "v{{ compose_version }}.yml"
+- include_role:
+    name: "compose"
+    tasks_from: "v{{ compose_version }}"

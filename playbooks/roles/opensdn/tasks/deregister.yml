@@ -1,5 +1,5 @@
 ---
-- name: deregister contrail toragent - Linux
+- name: deregister OpenSDN toragent - Linux
   include_role:
     name: opensdn_toragent
     tasks_from: deregister
@@ -13,7 +13,7 @@
     - (toragent_dict != 'vrouter' )
     - ansible_system == 'Linux'
 
-- name: deregister contrail vrouter - Linux
+- name: deregister OpenSDN vrouter - Linux
   include_role:
     name: opensdn_vrouter
     tasks_from: deregister

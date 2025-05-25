@@ -1,92 +1,45 @@
 - name: add kvm container hosts
   add_host:
-    hostname: "{{ item.value.ip }}"
+    hostname: "{{ item.value.ip | default(item.key)  }}"
     groupname: container_hosts
-    ansible_user: "{{ item.value.ssh_user|default(provider_config.kvm.ssh_user) }}"
-    ansible_ssh_pass: "{{ item.value.ssh_pwd|default(provider_config.kvm.ssh_pwd) }}"
+    ansible_user: "{{ item.value.ssh_user|default(provider_config.kvm.ssh_user)|default(omit) }}"
+    ansible_ssh_pass: "{{ item.value.ssh_pwd|default(provider_config.kvm.ssh_pwd)|default(omit) }}"
+    ansible_ssh_private_key_file: "{{ item.value.ssh_private_key|default(provider_config.kvm.ssh_private_key)|default(omit) }}"
     ansible_become: true
     instance_name: "{{ item.key }}"
-    private_ip: "{{ item.value.ip }}"
-  when: item.value.provider=='kvm' and (provider_config.kvm.ssh_pwd is defined or
-        item.value.ssh_pwd is defined)
-  with_dict: "{{ instances }}"
-  tags:
-    - configure_kvm_instances
-    - install_contrail
-
-- name: add kvm container hosts
-  add_host:
-    hostname: "{{ item.value.ip }}"
-    groupname: container_hosts
-    ansible_user: "{{ item.value.ssh_user|default(provider_config.kvm.ssh_user) }}"
-    ansible_ssh_private_key_file: "{{ item.value.ssh_private_key|default(provider_config.kvm.ssh_private_key) }}"
-    ansible_become: true
-    instance_name: "{{ item.key }}"
-    private_ip: "{{ item.value.ip }}"
-  when: item.value.provider=='kvm' and (provider_config.kvm.ssh_private_key is defined or
-        item.value.ssh_private_key is defined)
-  with_dict: "{{ instances }}"
+    private_ip: "{{ item.value.private_ip | default(item.value.ip) }}"
+  with_dict: "{{ instances | dict2items | selectattr('value.provider', 'equalto', 'kvm') | items2dict }}"
   tags:
     - configure_kvm_instances
     - install_contrail
 
 - name: add bms container hosts
   add_host:
-    hostname: "{{ item.value.ip }}"
-    groupname: container_hosts
-    ansible_user: "{{ item.value.ssh_user|default(provider_config.bms.ssh_user) }}"
-    ansible_ssh_pass: "{{ item.value.ssh_pwd|default(provider_config.bms.ssh_pwd) }}"
+    hostname: "{{ item.value.ip | default(item.key) }}"
+    groups: "{{ [ 'container_hosts' ] + (item.value.roles.keys() | list | map('regex_replace', '^(.*)$', 'opensdn_role_' + '\\1')) + (item.value.roles|dict2items|selectattr('value.location', 'defined')|map(attribute='value.location') | list | map('regex_replace', '^(.*)$', 'opensdn_location_' + '\\1')) | unique }}"
+    ansible_user: "{{ item.value.ssh_user|default(provider_config.bms.ssh_user)|default(omit) }}"
+    ansible_ssh_pass: "{{ item.value.ssh_pwd|default(provider_config.bms.ssh_pwd)|default(omit) }}"
+    ansible_ssh_private_key_file: "{{ item.value.ssh_private_key|default(provider_config.bms.ssh_private_key)|default(omit) }}"
     ansible_become: true
     instance_name: "{{ item.key }}"
-    private_ip: "{{ item.value.ip }}"
-  when: item.value.provider=='bms' and (provider_config.bms.ssh_pwd is defined or
-        item.value.ssh_pwd is defined)
-  with_dict: "{{ instances }}"
-  tags:
-    - configure_bms
-    - install_contrail
-
-- name: add bms container hosts
-  add_host:
-    hostname: "{{ item.value.ip }}"
-    groupname: container_hosts
-    ansible_user: "{{ item.value.ssh_user|default(provider_config.bms.ssh_user) }}"
-    ansible_ssh_private_key_file: "{{ item.value.ssh_private_key|default(provider_config.bms.ssh_private_key) }}"
-    ansible_become: true
-    instance_name: "{{ item.key }}"
-    private_ip: "{{ item.value.ip }}"
-  when: item.value.provider=='bms' and (provider_config.bms.ssh_private_key is defined or
-        item.value.ssh_private_key is defined)
-  with_dict: "{{ instances }}"
-  tags:
-    - configure_bms
-    - install_contrail
-
-- name: add bms container hosts without user/pwd/key
-  add_host:
-    hostname: "{{ item.value.ip }}"
-    groupname: container_hosts
-    instance_name: "{{ item.key }}"
-    ansible_become: true
-    private_ip: "{{ item.value.ip }}"
-  when: item.value.provider=='bms' and provider_config.bms.ssh_private_key is undefined and provider_config.bms.ssh_user is undefined and provider_config.bms.ssh_private_key is undefined
-  with_dict: "{{ instances }}"
+    private_ip: "{{ item.value.private_ip | default(item.value.ip) | default( lookup('community.general.dig', item.key) ) }}"
+  with_dict: "{{ instances | dict2items | selectattr('value.provider', 'equalto', 'bms') | items2dict }}"
   tags:
     - configure_bms
     - install_contrail
 
 - name: add gce container hosts
-  include_tasks: add_gce_container_hosts.yml
-  when: item.value.provider=='gce'
-  with_dict: "{{ instances }}"
+  include_tasks:
+    file: add_gce_container_hosts.yml
+  with_dict: "{{ instances | dict2items | selectattr('value.provider', 'equalto', 'gce') | items2dict }}"
   tags:
     - configure_gce_instances
     - install_contrail
 
 - name: add aws container hosts
-  include_tasks: add_aws_container_hosts.yml
-  when: item.value.provider=='aws'
-  with_dict: "{{ instances }}"
+  include_tasks:
+    file: add_aws_container_hosts.yml
+  with_dict: "{{ instances | dict2items | selectattr('value.provider', 'equalto', 'aws') | items2dict }}"
   tags:
     - configure_aws_instances
     - install_contrail

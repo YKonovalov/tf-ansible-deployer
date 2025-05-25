@@ -1,15 +1,7 @@
-- name: update contrail config_database image
-  shell: "docker pull {{ container_registry }}/{{ item }}:{{ contrail_version_tag }}"
-  register: res
-  retries: 5
-  until: res.rc == 0
-  with_items:
-    - opensdn-node-init
-    - opensdn-nodemgr
-    - opensdn-external-cassandra
-    - opensdn-external-zookeeper
-    - opensdn-external-rabbitmq
-    - opensdn-provisioner
+- name: "update config_database images"
+  include_role:
+    name: "compose_pull_v{{ compose_version }}"
+  vars:
+    compose_name: config_database
   when:
     - contrail_configuration.UPDATE_IMAGES is undefined or contrail_configuration.UPDATE_IMAGES != false
-    - roles[instance_name].config_database is defined

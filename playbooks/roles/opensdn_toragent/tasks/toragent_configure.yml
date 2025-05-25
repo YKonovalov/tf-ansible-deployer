@@ -1,0 +1,25 @@
+- name: "create /etc/contrail/{{ toragent_name }}"
+  file:
+    path: /etc/contrail/{{ toragent_name }}
+    state: directory
+    recurse: yes
+
+- name: "prepare configuration"
+  set_fact:
+    config_content: "{{ contrail_configuration | ansible.builtin.combine(
+                          instances[instance_name].contrail_configuration|default({}),
+                          toragent_data | default({})
+                          ) | dict2items |
+                        json_query('[].join(`=`, [key, to_string(value)])')|
+                        join('\n') }}\n"
+
+- name: "create /etc/contrail/{{ toragent_name }}.env"
+  copy:
+    content: "{{ config_content }}"
+    dest: "/etc/contrail/{{ toragent_name }}.env"
+    mode: "0640"
+
+- name: create contrail {{ toragent_name }} compose file
+  template:
+    src: contrail-toragent.yaml.j2
+    dest: "/etc/contrail/{{ toragent_name }}/docker-compose.yaml"

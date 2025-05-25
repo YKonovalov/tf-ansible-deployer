@@ -1,5 +1,5 @@
 ---
-- name: create container host group for Contrail destroyer
+- name: create container host group for OpenSDN destroyer
   hosts: localhost
   connection: local
   gather_facts: no
@@ -25,11 +25,19 @@
   vars_files:
     - "{{ config_file }}"
 
-- name: Apply role destroy to Contrail
+- name: Set compose version
+  hosts: container_hosts
+  gather_facts: no
+  tasks:
+  - include_role:
+      name: compose
+      tasks_from: "init"
+  tags: always
+
+- name: Apply role destroy to OpenSDN
   hosts: container_hosts
   roles:
     - destroy
   vars:
     - instances: "{{ hostvars['localhost'].instances }}"
-    - roles: "{{ hostvars['localhost'].roles }}"
-
+    - sdn_roles: "{{ hostvars['localhost'].hosts_roles }}"

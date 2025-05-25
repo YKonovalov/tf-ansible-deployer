@@ -1,0 +1,33 @@
+#- debug:
+#    msg: "
+#    is_new_module: {{ is_new_module }},
+#    "
+
+#- name: remove all built vrouter.ko on RedHat families
+#  shell: "rm -rf /lib/modules/*/kernel/net/vrouter/vrouter.ko"
+#  when: ansible_os_family == 'RedHat'
+
+#- name: remove all built vrouter.ko on Debian families
+#  shell: "rm -rf /lib/modules/*/updates/dkms/vrouter.ko"
+#  when: ansible_os_family == 'Debian'
+
+- name: "Remove current kernel vrouter module file: {{ current_kernel_vrouter_module_filename.stdout }}"
+  ansible.builtin.file:
+    path: "{{ current_kernel_vrouter_module_filename.stdout }}"
+    state: absent
+
+- name: "Kernel module install/update"
+  include_role:
+    name: "compose_v{{ compose_version }}"
+  vars:
+    compose_state: present
+    compose_name: vrouter
+    compose_services: vrouter-kernel-init
+    compose_recreate: always
+    compose_dependencies: true
+
+- name: "Wait for current kernel vrouter module file: {{ current_kernel_vrouter_module_filename.stdout }}"
+  ansible.builtin.wait_for:
+    path: "{{ current_kernel_vrouter_module_filename.stdout }}"
+    state: present
+    msg: "Timeout to find {{ current_kernel_vrouter_module_filename.stdout }}"

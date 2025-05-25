@@ -1,8 +1,6 @@
----
-- name: "Stop contrail control"
-  docker_compose:
-    project_src: /etc/contrail/control
-    state: absent
-  environment:
-    DOCKER_CLIENT_TIMEOUT: '120'
-    COMPOSE_HTTP_TIMEOUT: '120'
+- name: "stop control"
+  include_role:
+    name: "compose_v{{ compose_version }}"
+  vars:
+    compose_name: control
+    compose_state: absent

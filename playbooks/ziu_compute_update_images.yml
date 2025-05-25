@@ -1,0 +1,55 @@
+- name: opensdn common
+  hosts: opensdn_role_vrouter
+  gather_facts: yes
+  roles:
+    - opensdn
+  vars:
+    instance_data: "{{ instances[hostvars[inventory_hostname].instance_name] }}"
+    instance_name: "{{ hostvars[inventory_hostname].instance_name }}"
+  tags:
+    - opensdn_common
+
+- name: opensdn rsyslogd for Linux
+  hosts: opensdn_role_vrouter
+  gather_facts: no
+  tasks:
+  - include_role:
+      name: opensdn_rsyslogd
+      tasks_from: configure
+    tags:
+      - configure
+  - include_role:
+      name: opensdn_rsyslogd
+      tasks_from: update_images
+    tags:
+      - update_images
+  vars_files:
+     - "{{ playbook_dir }}/roles/opensdn/defaults/main.yml"
+  vars:
+    instance_data: "{{ instances[hostvars[inventory_hostname].instance_name] }}"
+    instance_name: "{{ hostvars[inventory_hostname].instance_name }}"
+  tags:
+    - rsyslogd
+
+- name: OpenSDN vrouter for Linux prepare 
+  hosts: opensdn_role_vrouter
+  gather_facts: no
+  tasks:
+  - include_role:
+      name: opensdn_vrouter
+      tasks_from: configure
+    tags:
+      - configure
+  - include_role:
+      name: opensdn_vrouter
+      tasks_from: update_images
+    tags:
+      - update_images
+#    when: ansible_system == 'Linux'
+  vars_files:
+     - "{{ playbook_dir }}/roles/opensdn/defaults/main.yml"
+  vars:
+    instance_data: "{{ instances[hostvars[inventory_hostname].instance_name] }}"
+    instance_name: "{{ hostvars[inventory_hostname].instance_name }}"
+  tags:
+    - vrouter

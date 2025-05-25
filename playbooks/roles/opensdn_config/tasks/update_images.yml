@@ -1,17 +1,7 @@
-- name: update contrail config image
-  shell: "docker pull {{ container_registry }}/{{ item }}:{{ contrail_version_tag }}"
-  register: res
-  retries: 5
-  until: res.rc == 0
-  with_items:
-    - opensdn-node-init
-    - opensdn-nodemgr
-    - opensdn-controller-config-api
-    - opensdn-controller-config-svcmonitor
-    - opensdn-controller-config-schema
-    - opensdn-controller-config-devicemgr
-    - opensdn-controller-config-dnsmasq
-    - opensdn-provisioner
+- name: "update config images"
+  include_role:
+    name: "compose_pull_v{{ compose_version }}"
+  vars:
+    compose_name: config
   when:
     - contrail_configuration.UPDATE_IMAGES is undefined or contrail_configuration.UPDATE_IMAGES != false
-    - roles[instance_name].config is defined

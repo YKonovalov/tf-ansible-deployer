@@ -1,0 +1,10 @@
+- name: Stop control only
+  import_role:
+    name: compose
+  vars:
+    compose_name: "control_only_{{ location.key }}"
+    compose_state: absent
+  with_dict: "{{ remote_locations }}"
+  loop_control:
+    loop_var: location
+  when: remote_locations is defined

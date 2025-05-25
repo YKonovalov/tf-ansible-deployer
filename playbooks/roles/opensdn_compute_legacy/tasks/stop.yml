@@ -1,0 +1,6 @@
+- name: "stop compute-legacy"
+  include_role:
+    name: "compose_v{{ compose_version }}"
+  vars:
+    compose_name: compute-legacy
+    compose_state: absent

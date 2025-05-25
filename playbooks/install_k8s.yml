@@ -33,7 +33,7 @@
     - contrail_configuration: "{{ hostvars['localhost'].contrail_configuration }}"
     - global_configuration: "{{ hostvars['localhost'].global_configuration }}"
     - instances: "{{ hostvars['localhost'].instances }}"
-    - roles: "{{ hostvars['localhost'].roles }}"
+    - sdn_roles: "{{ hostvars['localhost'].hosts_roles }}"
     - k8s_master_ip: "{{ hostvars['localhost'].k8s_master_ip }}"
     - k8s_master_name: "{{ hostvars['localhost'].k8s_master_name }}"
   environment:

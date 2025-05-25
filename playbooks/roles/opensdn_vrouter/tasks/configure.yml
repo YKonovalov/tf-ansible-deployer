@@ -1,0 +1,38 @@
+- name: "create /etc/contrail/vrouter"
+  file:
+    path: /etc/contrail/vrouter
+    state: directory
+    recurse: yes
+
+- name: "create /var/run/contrail/loadbalancer"
+  file:
+    path: /var/run/contrail/loadbalancer
+    state: directory
+    recurse: yes
+
+- name: "add kubemanager token"
+  set_fact:
+    sdn_k8s_token:
+      K8S_TOKEN: "{{ hostvars[k8s_master_name].kubemanagertoken }}"
+  when: k8s_master_name is defined and hostvars[k8s_master_name].kubemanagertoken is defined
+
+- name: "prepare configuration"
+  set_fact:
+    config_content: "{{ contrail_configuration | ansible.builtin.combine(
+                          remote_locations[instance_data.roles.vrouter.location] if instance_data.roles.vrouter.location is defined and remote_locations  else {} | default({}),
+                          instances[instance_name].contrail_configuration | default({}),
+                          sdn_roles[instance_name].vrouter | default({}),
+                          sdn_k8s_token  | default({})
+                          ) | dict2items |
+                        json_query('[].join(`=`, [key, to_string(value)])')|
+                        join('\n') }}\n"
+
+- name: "create /etc/contrail/common_vrouter.env"
+  copy:
+    content: "{{ config_content }}"
+    dest: "/etc/contrail/common_vrouter.env"
+    mode: "0640"
+
+- name: "Configure vrouter in {{ sdn_roles[instance_name].vrouter.AGENT_MODE|default('kernel') }} mode"
+  include_tasks:
+    file: "configure_{{ sdn_roles[instance_name].vrouter.AGENT_MODE|default('kernel') }}.yml"

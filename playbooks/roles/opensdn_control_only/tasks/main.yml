@@ -1,6 +1,5 @@
----
-- name: call control only
-  include_tasks: "step2.yml"
+- name: call control_only main
+  include_tasks: "do-main.yml"
   with_dict: "{{ remote_locations }}"
   loop_control:
     loop_var: location

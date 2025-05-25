@@ -1,7 +1,6 @@
-- name: "stop contrail webui"
-  docker_compose:
-    project_src: /etc/contrail/webui
-    state: absent
-  environment:
-    DOCKER_CLIENT_TIMEOUT: '120'
-    COMPOSE_HTTP_TIMEOUT: '120'
+- name: "stop webui"
+  include_role:
+    name: "compose_v{{ compose_version }}"
+  vars:
+    compose_name: webui
+    compose_state: absent

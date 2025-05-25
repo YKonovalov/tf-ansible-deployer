@@ -1,0 +1,11 @@
+- name: "Set variables for DPDK plugins"
+  set_fact:
+    plugin_os: "{{ 'ubuntu' if (ansible_os_family == 'Debian') else 'redhat' }}"
+    mellanox: "{{ true if (sdn_roles[instance_name].vrouter.DPDK_UIO_DRIVER is defined
+                and sdn_roles[instance_name].vrouter.DPDK_UIO_DRIVER == 'mlnx') else false }}"
+    n3000: "{{ true if (sdn_roles[instance_name].vrouter.DPDK_UIO_DRIVER is defined
+                and sdn_roles[instance_name].vrouter.DPDK_UIO_DRIVER == 'n3000') else false }}"
+- name: "create OpenSDN dpdk vrouter compose file"
+  template:
+    src: contrail-vrouter-dpdk.yaml.j2
+    dest: "/etc/contrail/vrouter/docker-compose.yaml"

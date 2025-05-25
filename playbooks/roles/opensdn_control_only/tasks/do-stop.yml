@@ -1,0 +1,6 @@
+- name: "stop control_only_{{ location.key }}"
+  include_role:
+    name: "compose_v{{ compose_version }}"
+  vars:
+    compose_name: "control_only_{{ location.key }}"
+    compose_state: absent

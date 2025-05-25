@@ -51,7 +51,6 @@ common_volumes:
   - "/etc/contrail/ssl:/etc/contrail/ssl"
   - "/etc/sysctl.d:/etc/sysctl.d"
   - "/etc/hosts:/etc/hosts"
-  - "/etc/timezone:/etc/timezone"
   - "/etc/localtime:/etc/localtime"
   - "/var/log/contrail:/var/log/contrail"
   - "/var/crashes:/var/crashes"

@@ -1,18 +1,5 @@
----
-- name: create /etc/contrail/analytics_snmp
-  file:
-    path: /etc/contrail/analytics_snmp
-    state: directory
-    recurse: yes
-
-- name: create contrail analytics_snmp docker-compose file
-  template:
-    src: contrail-analytics-snmp.yaml.j2
-    dest: /etc/contrail/analytics_snmp/docker-compose.yaml
-
-- name: start contrail analytics_snmp
-  docker_compose:
-    project_src: /etc/contrail/analytics_snmp
-  environment:
-    DOCKER_CLIENT_TIMEOUT: '120'
-    COMPOSE_HTTP_TIMEOUT: '120'
+- name: "start analytics_snmp"
+  include_role:
+    name: "compose_v{{ compose_version }}"
+  vars:
+    compose_name: analytics_snmp

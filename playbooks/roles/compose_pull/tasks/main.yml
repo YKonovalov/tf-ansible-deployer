@@ -1,0 +1,5 @@
+#- include_tasks:
+#    file: "v{{ compose_version }}.yml"
+- include_role:
+    name: "compose_pull"
+    tasks_from: "v{{ compose_version }}"

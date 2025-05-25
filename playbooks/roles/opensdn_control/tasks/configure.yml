@@ -1,0 +1,26 @@
+- name: create /etc/contrail/control
+  file:
+    path: /etc/contrail/control
+    state: directory
+    recurse: yes
+
+- name: "prepare configuration"
+  set_fact:
+    config_content: "{{ contrail_configuration | ansible.builtin.combine(
+                          (remote_locations[instance_data.roles.control.location] if instance_data.roles.control.location is defined and remote_locations else {}) | default({}),
+                          instances[instance_name].contrail_configuration|default({}),
+                          sdn_roles[instance_name].control|default({})
+                          ) | dict2items |
+                        json_query('[].join(`=`, [key, to_string(value)])')|
+                        join('\n') }}\n"
+
+- name: "create /etc/contrail/common_control.env"
+  copy:
+    content: "{{ config_content }}"
+    dest: "/etc/contrail/common_control.env"
+    mode: "0640"
+
+- name: "create OpenSDN control compose file"
+  template:
+    src: contrail-control.yaml.j2
+    dest: "/etc/contrail/control/docker-compose.yaml"

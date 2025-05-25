@@ -1,0 +1,7 @@
+- name: "update toragent {{ toragent_name }} images"
+  include_role:
+    name: "compose_pull_v{{ compose_version }}"
+  vars:
+    compose_name: "{{ toragent_name }}"
+  when:
+    - contrail_configuration.UPDATE_IMAGES is undefined or contrail_configuration.UPDATE_IMAGES != false

@@ -1,0 +1,43 @@
+- name: opensdn config_database
+  hosts: opensdn_role_config_database
+  gather_facts: no
+  serial: 1
+  tasks:
+  - include_role:
+      name: opensdn_config_database
+      tasks_from: stop
+    tags:
+      - stop
+  - include_role:
+      name: opensdn_config_database
+    tags:
+      - start
+  vars_files:
+     - "{{ playbook_dir }}/roles/opensdn/defaults/main.yml"
+  vars:
+    instance_data: "{{ instances[hostvars[inventory_hostname].instance_name] }}"
+    instance_name: "{{ hostvars[inventory_hostname].instance_name }}"
+  tags:
+    - config_database
+
+- name: opensdn analytics_database
+  hosts: opensdn_role_analytics_database
+  gather_facts: no
+  serial: 1
+  tasks:
+  - include_role:
+      name: opensdn_analytics_database
+      tasks_from: stop
+    tags:
+      - stop
+  - include_role:
+      name: opensdn_analytics_database
+    tags:
+      - start
+  vars_files:
+     - "{{ playbook_dir }}/roles/opensdn/defaults/main.yml"
+  vars:
+    instance_data: "{{ instances[hostvars[inventory_hostname].instance_name] }}"
+    instance_name: "{{ hostvars[inventory_hostname].instance_name }}"
+  tags:
+    - analytics_database

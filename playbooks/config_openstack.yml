@@ -27,20 +27,20 @@
   tasks:
     - include_role:
         name: neutron
-      when: roles[instance_name].openstack is defined
+      when: hosts_roles[instance_name].openstack is defined
     - include_role:
         name: nova
-      when: roles[instance_name].openstack_compute is defined
+      when: hosts_roles[instance_name].openstack_compute is defined
     - include_role:
         name: heat
-      when: roles[instance_name].openstack is defined
+      when: hosts_roles[instance_name].openstack is defined
     - include_role:
         name: glance
-      when: roles[instance_name].openstack is defined
+      when: hosts_roles[instance_name].openstack is defined
   vars:
     container_registry: "{{ hostvars['localhost'].container_registry }}"
     contrail_version_tag: "{{ hostvars['localhost'].contrail_version_tag }}"
-    roles: "{{ hostvars['localhost'].roles }}"
+    hosts_roles: "{{ hostvars['localhost'].hosts_roles }}"
     opencontrail_api_server_port: "{{ hostvars['localhost'].config_api_port }}"
     opencontrail_collector_port: "{{ hostvars['localhost'].analytics_api_port }}"
     contrail_plugin_keystone_port: "{{ hostvars['localhost'].keystone_auth_public_port }}"

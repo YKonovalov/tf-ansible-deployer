@@ -1,0 +1,12 @@
+- name: "ensure {{ compose_name }} is {{ compose_state | default(default_compose_state) }}"
+  community.docker.docker_compose:
+    project_src:    "{{ compose_src            | default(default_compose_src + compose_name) }}"
+    state:          "{{ compose_state          | default(default_compose_state) }}"
+    remove_images:  "{{ compose_remove_images  | default(omit) }}"
+    remove_volumes: "{{ compose_remove_volumes | default(omit) }}"
+    services:       "{{ compose_services       | default(omit) }}"
+    pull:           "{{ compose_pull           | default(omit) }}"
+    recreate:       "{{ compose_recreate       | default(omit) }}"
+    dependencies:   "{{ compose_dependencies   | default(omit) }}"
+  environment:      "{{ compose_env            | default(default_compose_environment) }}"
+  register: compose_output

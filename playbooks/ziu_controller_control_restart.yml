@@ -1,0 +1,43 @@
+- name: opensdn control
+  hosts: opensdn_role_control
+  gather_facts: no
+  serial: 1
+  tasks:
+  - include_role:
+      name: opensdn_control
+      tasks_from: stop
+    tags:
+      - stop
+  - include_role:
+      name: opensdn_control
+    tags:
+      - start
+  vars_files:
+     - "{{ playbook_dir }}/roles/opensdn/defaults/main.yml"
+  vars:
+    instance_data: "{{ instances[hostvars[inventory_hostname].instance_name] }}"
+    instance_name: "{{ hostvars[inventory_hostname].instance_name }}"
+  tags:
+    - control
+
+- name: opensdn control_only
+  hosts: opensdn_role_control_only
+  gather_facts: no
+  serial: 1
+  tasks:
+  - include_role:
+      name: opensdn_control_only
+      tasks_from: stop
+    tags:
+      - stop
+  - include_role:
+      name: opensdn_control_only
+    tags:
+      - start
+  vars_files:
+     - "{{ playbook_dir }}/roles/opensdn/defaults/main.yml"
+  vars:
+    instance_data: "{{ instances[hostvars[inventory_hostname].instance_name] }}"
+    instance_name: "{{ hostvars[inventory_hostname].instance_name }}"
+  tags:
+    - control_only
