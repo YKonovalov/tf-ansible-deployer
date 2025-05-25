@@ -1,0 +1,7 @@
+- name: "update toragent {{ toragent_name }} images"
+  ansible.builtin.include_role:
+    name: "{{ compose_pull_role }}"
+  vars:
+    compose_name: "{{ toragent_name }}"
+  when:
+    - contrail_configuration.UPDATE_IMAGES is undefined or contrail_configuration.UPDATE_IMAGES != false

@@ -1,0 +1,14 @@
+- name: "ensure {{ compose_name }} {{ compose_services |default('containers') }} is {{ compose_state | default(default_compose_state) }}{{ ' (dry run)' if compose_check_mode|default(false) else '' }}"
+  community.docker.docker_compose:
+    project_src:    "{{ compose_src            | default(default_compose_src + compose_name) }}"
+    state:          "{{ {'present': 'present', 'absent': 'absent', 'stopped': 'present', 'restarted': 'present'}[compose_state|default('present')] | default(default_compose_state) }}"
+    remove_images:  "{{ compose_remove_images  | default(omit) }}"
+    remove_volumes: "{{ compose_remove_volumes | default(omit) }}"
+    services:       "{{ compose_services       | default(omit) }}"
+    pull:           "{{ {'never': false, 'always': true, 'missing': true, 'policy': true}[compose_pull|default('policy')] | default(omit) }}"
+    recreate:       "{{ compose_recreate       | default(omit) }}"
+    dependencies:   "{{ compose_dependencies   | default(omit) }}"
+  environment:      "{{ compose_env            | default(default_compose_environment) }}"
+  register: compose_output
+  changed_when: "compose_check_mode | default(false) | ternary(false, compose_output.changed)"
+

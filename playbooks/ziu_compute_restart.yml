@@ -1,0 +1,30 @@
+- name: opensdn rsyslogd restart
+  hosts: opensdn_role_vrouter
+  gather_facts: no
+  roles:
+     - opensdn_rsyslogd
+  vars_files:
+     - "{{ playbook_dir }}/roles/opensdn/defaults/main.yml"
+  vars:
+    instance_data: "{{ instances[hostvars[inventory_hostname].instance_name] }}"
+    instance_name: "{{ hostvars[inventory_hostname].instance_name }}"
+  tags:
+    - rsyslogd
+    - restart
+
+# To minimize impact on connectivity for each hypervisor here we enforce independant
+# task execution (strategy: free). So play tasks will not wait for other nodes to finish
+- name: opensdn vrouter for Linux restart
+  hosts: opensdn_role_vrouter
+  gather_facts: no
+  strategy: free
+  roles:
+     - opensdn_vrouter
+  vars_files:
+     - "{{ playbook_dir }}/roles/opensdn/defaults/main.yml"
+  vars:
+    instance_data: "{{ instances[hostvars[inventory_hostname].instance_name] }}"
+    instance_name: "{{ hostvars[inventory_hostname].instance_name }}"
+  tags:
+    - vrouter
+    - restart

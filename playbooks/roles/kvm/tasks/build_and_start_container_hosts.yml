@@ -167,7 +167,7 @@
   copy:
     content: "DEVICE=eth0\nIPADDR={{ item.value.ip }}\nNETMASK={{ subnet_netmask }}\nGATEWAY={{ gateway }}\nDNS1={{ nameserver }}\nONBOOT=yes"
     dest: "/tmp/ifcfg_{{ container_vm_hostname }}"
-#  when: ansible_os_family == "RedHat" or ansible_os_family == 'Rocky'
+#  when: ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'Rocky'
 
 - name: create ifcfg for additional interfaces file
   template:

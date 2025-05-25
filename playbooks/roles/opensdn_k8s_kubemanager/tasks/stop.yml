@@ -1,0 +1,6 @@
+- name: "stop kubemanager_{{ contrail_configuration.get('KUBERNETES_CLUSTER_NAME', 'k8s') }}"
+  ansible.builtin.include_role:
+    name: "{{ compose_role }}"
+  vars:
+    compose_name: "kubemanager_{{ contrail_configuration.get('KUBERNETES_CLUSTER_NAME', 'k8s') }}"
+    compose_state: absent

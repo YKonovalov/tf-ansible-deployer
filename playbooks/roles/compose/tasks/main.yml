@@ -1,0 +1,24 @@
+- name: "docker_compose_v2 support check ansible"
+  set_fact:
+      compose_v2_ansible: true
+  when:
+  - "'community.docker.docker_compose_v2' is community.general.a_module"
+  ignore_errors: yes
+
+- name: "docker_compose_v2 support check cli"
+  command: docker compose version
+  register: compose_v2_cli
+  failed_when: compose_v2_cli.rc not in [0, 1]
+  changed_when: false
+
+- name: docker_compose set version
+  set_fact:
+      compose_version: "{{ '2' if compose_v2_ansible|default(false) and compose_v2_cli.rc|default(1) == 0 else '1' }}"
+
+- name: docker_compose set role
+  set_fact:
+      compose_role: "{{ 'compose_v2' if compose_version == '2' else 'compose_v1' }}"
+
+- name: docker_compose_pull set role
+  set_fact:
+      compose_pull_role: "{{ 'compose_pull_v2' if (compose_version == '2' and not (contrail_configuration.UPDATE_IMAGES_COMPAT is defined and contrail_configuration.UPDATE_IMAGES_COMPAT == true)) else 'compose_pull_compat' }}"

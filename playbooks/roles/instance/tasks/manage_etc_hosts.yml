@@ -70,14 +70,14 @@
     - item.0 in hostvars[item.1].ansible_all_ipv4_addresses
 
 - name: "Build hosts file with domain suffix when provided"
-  lineinfile: dest=/etc/hosts regexp='^{{ item }} .*' line="{{ item }} {{ hostvars[item]['ansible_hostname'] }}.{{ provider_data.domainsuffix }} {{ hostvars[item]['ansible_hostname'] }}" state=present
+  lineinfile: dest=/etc/hosts regexp='^{{ hostvars[item]['private_ip'] }} .*' line="{{ hostvars[item]['private_ip'] }} {{ hostvars[item]['ansible_hostname'] }}.{{ provider_data.domainsuffix }} {{ hostvars[item]['ansible_hostname'] }}" state=present
   with_items: "{{ hostvars[inventory_hostname].groups.container_hosts }}"
   when:
     - instance_data.provider == 'bms'
     - provider_data.domainsuffix is defined
 
 - name: "Build hosts file with domain suffix"
-  lineinfile: dest=/etc/hosts regexp='^{{ item }} .*' line="{{ item }} {{ hostvars[item]['ansible_fqdn'] }} {{ hostvars[item]['ansible_hostname'] }}" state=present
+  lineinfile: dest=/etc/hosts regexp='^{{ hostvars[item]['private_ip'] }} .*' line="{{ hostvars[item]['private_ip'] }} {{ hostvars[item]['ansible_fqdn'] }} {{ hostvars[item]['ansible_hostname'] }}" state=present
   with_items: "{{ hostvars[inventory_hostname].groups.container_hosts }}"
   when:
     - instance_data.provider == 'bms'
@@ -85,7 +85,7 @@
     - hostvars[item]['ansible_fqdn'] is defined
 
 - name: "Build hosts file without domain suffix when not provided (bad bad)"
-  lineinfile: dest=/etc/hosts regexp='.*{{ item }}$' line="{{ item }} {{ hostvars[item]['ansible_hostname'] }}" state=present
+  lineinfile: dest=/etc/hosts regexp='^{{ hostvars[item]['private_ip'] }} .*' line="{{ hostvars[item]['private_ip'] }} {{ hostvars[item]['ansible_hostname'] }}" state=present
   with_items: "{{ hostvars[inventory_hostname].groups.container_hosts }}"
   when:
     - instance_data.provider == 'bms'
@@ -93,14 +93,14 @@
     - hostvars[item]['ansible_fqdn'] is undefined
 
 - name: "Build hosts file with domain suffix when provided"
-  lineinfile: dest=/etc/hosts regexp='.*{{ item }}$' line="{{ item }} {{ hostvars[item]['ansible_hostname'] }}.{{ provider_data.domainsuffix }} {{ hostvars[item]['ansible_hostname'] }}" state=present
+  lineinfile: dest=/etc/hosts regexp='^{{ hostvars[item]['private_ip'] }} .*' line="{{ hostvars[item]['private_ip'] }} {{ hostvars[item]['ansible_hostname'] }}.{{ provider_data.domainsuffix }} {{ hostvars[item]['ansible_hostname'] }}" state=present
   with_items: "{{ hostvars[inventory_hostname].groups.container_hosts }}"
   when:
     - instance_data.provider == 'kvm'
     - provider_data.domainsuffix is defined
 
 - name: "Build hosts file wit domain suffix when not provided (bad bad)"
-  lineinfile: dest=/etc/hosts regexp='.*{{ item }}$' line="{{ item }} {{ hostvars[item]['ansible_fqdn'] }} {{ hostvars[item]['ansible_hostname'] }}" state=present
+  lineinfile: dest=/etc/hosts regexp='^{{ hostvars[item]['private_ip'] }} .*' line="{{ hostvars[item]['private_ip'] }} {{ hostvars[item]['ansible_fqdn'] }} {{ hostvars[item]['ansible_hostname'] }}" state=present
   with_items: "{{ hostvars[inventory_hostname].groups.container_hosts }}"
   when:
     - instance_data.provider == 'kvm'
@@ -108,7 +108,7 @@
     - hostvars[item]['ansible_fqdn'] is defined
 
 - name: "Build hosts file without domain suffix when not provided (bad bad)"
-  lineinfile: dest=/etc/hosts regexp='.*{{ item }}$' line="{{ item }} {{ hostvars[item]['ansible_hostname'] }}" state=present
+  lineinfile: dest=/etc/hosts regexp='^{{ hostvars[item]['private_ip'] }} .*' line="{{ hostvars[item]['private_ip'] }} {{ hostvars[item]['ansible_hostname'] }}" state=present
   with_items: "{{ hostvars[inventory_hostname].groups.container_hosts }}"
   when:
     - instance_data.provider == 'kvm'

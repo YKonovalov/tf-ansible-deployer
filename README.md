@@ -142,7 +142,7 @@ Configures provisioned instances. Applicable to all providers.
 Installs software, configures operating system as outlined under
 prerquisites.
 
-- playbooks/install_contrail.yml
+- playbooks/install_opensdn.yml
 
 Pulls, configures and starts Contrail containers.
 
@@ -359,24 +359,38 @@ ansible-playbook -i inventory/ playbooks/install_openstack.yml
 Contrail installation:
 orchestrator can be openstack or none or kubernetes (for pure k8s installations).
 ```
-ansible-playbook -e orchestrator=none|openstack|kubernetes -i inventory/ playbooks/install_contrail.yml
+ansible-playbook -e orchestrator=none|openstack|kubernetes -i inventory/ playbooks/install_opensdn.yml
 ```
 
 Contrail's k8s installation:
 orchestrator can be openstack or kubernetes (for pure k8s installations).
 openstack can be used here for hybrid clouds like Contrail+OpenStack+K8s
 ```
-ansible-playbook -e orchestrator=openstack|kubernetes -i inventory/ playbooks/install_contrail.yml
+ansible-playbook -e orchestrator=openstack|kubernetes -i inventory/ playbooks/install_opensdn.yml
 ```
 
 The location of the configuration file (config/instances.yaml) can be changed
 using the -e config_file= parameter, i.e.:
 
 ```
-ansible-playbook -i inventory/ -e config_file=/config/instances_gce.yml playbooks/install_contrail.yml
+ansible-playbook -i inventory/ -e config_file=/config/instances_gce.yml playbooks/install_opensdn.yml
 ```
 
 yaml and json formats are supported.
+
+#### selecting subset of nodes
+deployer playbooks construct dynamic inventory from config instances and other vars from config file, and automatically groups the hosts according to their corresponding roles. So it is possible to use this automatically created groups in ansible --limit arg to select which nodes should be targeted. Please note that localhost must be always included in --limit because it used by playbooks to calculateand store global SDN configuration during playbook execution.
+
+
+To target playbook on control and config nodes:
+```
+ansible-playbook --limit localhost,opensdn_role_config,opensdn_role_control ...
+```
+
+To run playbook on vrounter nodes only:
+```
+ansible-playbook --limit localhost,opensdn_role_vrouter ...
+```
 
 # Accessing the Kubernetes dashboard
 

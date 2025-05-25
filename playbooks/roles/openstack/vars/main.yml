@@ -5,11 +5,12 @@ os_nodes_storage: >-
      {%- set node_list = [] -%}
       {%- for k,v in hostvars['localhost']['instances'].items() -%}
        {%- if v.roles is not defined or v.roles.openstack is defined or v.roles.openstack_control is defined or v.roles.openstack_storage is defined -%}
-        {%- if hostvars[v.ip]['ansible_' + hostvars[v.ip]['network_interface_detected']].get('ipv4',{}).get('address') -%}
-         {{ node_list.append(hostvars[v.ip]['ansible_' + hostvars[v.ip]['network_interface_detected']].get('ipv4',{}).get('address')) | default("",True) }}
+        {%- if hostvars[k]['ansible_' + hostvars[k]['network_interface_detected']].get('ipv4',{}).get('address') -%}
+         {{ node_list.append(hostvars[k]['ansible_' + hostvars[k]['network_interface_detected']].get('ipv4',{}).get('address')) | default("",True) }}
         {%- endif -%}
        {%- endif -%}
       {%- endfor -%}
       {{ node_list|join(',') }}
 
 instance_data: "{{ instances[hostvars[inventory_hostname].instance_name] }}"
+

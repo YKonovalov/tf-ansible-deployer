@@ -8,8 +8,8 @@
 
 - name: build deleted toragent roles
   set_fact:
-      cluster_roles_dict: "{{ cluster_roles_dict | calculate_deleted_toragent_roles(item) }}"
-  with_dict: "{{ instances }}"
+    cluster_roles_dict: "{{ cluster_roles_dict | calculate_deleted_toragent_roles(item) }}"
+  with_dict: "{{ instances | dict2items | selectattr('value.provider', 'equalto', 'kvm')| items2dict }}"
   when:
     - global_configuration.ENABLE_DESTROY | default('True') | bool
 

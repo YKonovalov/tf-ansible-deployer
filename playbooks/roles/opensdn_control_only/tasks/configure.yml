@@ -1,0 +1,6 @@
+- name: call control_only configure
+  include_tasks: "do-configure.yml"
+  with_dict: "{{ remote_locations }}"
+  loop_control:
+    loop_var: location
+  when: remote_locations is defined

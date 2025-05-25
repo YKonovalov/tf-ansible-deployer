@@ -47,14 +47,14 @@
   tags:
    - always
 
-- name: set stdin_open to true if it's not defined
+- name: "set stdin_open to true if it's not defined"
   set_fact:
     contrail_configuration: "{{ contrail_configuration | combine({'STDIN_OPEN': true}) }}"
   when:
     - contrail_configuration.STDIN_OPEN is not defined
   tags:
     - always
-- name: set tty to true if it's not defined
+- name: "set tty to true if it's not defined"
   set_fact:
     contrail_configuration: "{{ contrail_configuration | combine({'TTY': true}) }}"
   when:
@@ -80,35 +80,58 @@
     - {'name': 'KUBERNETES_API_NODES', 'nodes': "{{k8s_master_nodes_list}}"}
     - {'name': 'KUBEMANAGER_NODES', 'nodes': "{{kubemanager_nodes_list}}"}
 
-- set_fact:
-    contrail_configuration: "{{ contrail_configuration | combine({'ANALYTICSDB_ENABLE': False}) }}"
-- name: check analyticsdb presence
-  set_fact:
-    contrail_configuration: "{{ contrail_configuration | combine({'ANALYTICSDB_ENABLE': True}) }}"
-  when:
-    - item.value.roles is defined
-    - item.value.roles.analytics_database is defined
-  with_dict: "{{ hostvars['localhost']['instances'] }}"
+- name: show remote_locations intact
+  debug:
+    var: remote_locations
 
-- set_fact:
-    contrail_configuration: "{{ contrail_configuration | combine({'ANALYTICS_ALARM_ENABLE': False}) }}"
+- name: add nodes to remote_locations
+  set_fact:
+    remote_locations: "{{ remote_locations | combine({pop: {param_name: param_nodes|join(',')} }, recursive=True) }}"
+  when: remote_locations[pop].get(param_name, 0) == 0 and param_nodes | length > 0
+  loop: "{{ remote_locations.keys()|list| product(['CONTROL_NODES','SUBCLUSTER','BGP_AUTO_MESH','DNS_NODES']) | list }}"
+  loop_control:
+    loop_var: locations
+  vars:
+    pop:  "{{ locations[0] }}"
+    param_name: "{{ locations[1] }}"
+    param_nodes: "{{                   [locations[0]] if locations[1] == 'SUBCLUSTER' else
+                                            ['false'] if locations[1] == 'BGP_AUTO_MESH' else
+                      locations_control_nodes.get('') if locations[1] == 'DNS_NODES' else
+                      locations_control_nodes.get(locations[0]) }}"
+
+- name: show remote_locations modified
+  debug:
+    var: remote_locations
+
+- name: check analyticsi database presence
+  set_fact:
+    has_analytics_database: "{{ instances | dict2items | selectattr('value.roles.analytics_database', 'defined') | length >0 }}"
+- name: print analytics database presence
+  ansible.builtin.debug:
+    var: has_analytics_database
+- name: store analytics database presence into configuration
+  set_fact:
+    contrail_configuration: "{{ contrail_configuration | combine({'ANALYTICSDB_ENABLE': has_analytics_database }) }}"
+
 - name: check analytics alarm presence
   set_fact:
-    contrail_configuration: "{{ contrail_configuration | combine({'ANALYTICS_ALARM_ENABLE': True}) }}"
-  when:
-    - item.value.roles is defined
-    - item.value.roles.analytics_alarm is defined
-  with_dict: "{{ hostvars['localhost']['instances'] }}"
+    has_analytics_alarm: "{{ instances | dict2items | selectattr('value.roles.analytics_alarm', 'defined') | length >0 }}"
+- name: print analytics alarm presence
+  ansible.builtin.debug:
+    var: has_analytics_alarm
+- name: store analytics database presence into configuration
+  set_fact:
+    contrail_configuration: "{{ contrail_configuration | combine({'ANALYTICS_ALARM_ENABLE': has_analytics_alarm}) }}"
 
-- set_fact:
-    contrail_configuration: "{{ contrail_configuration | combine({'ANALYTICS_SNMP_ENABLE': False}) }}"
 - name: check analytics snmp presence
   set_fact:
-    contrail_configuration: "{{ contrail_configuration | combine({'ANALYTICS_SNMP_ENABLE': True}) }}"
-  when:
-    - item.value.roles is defined
-    - item.value.roles.analytics_snmp is defined
-  with_dict: "{{ hostvars['localhost']['instances'] }}"
+    has_analytics_snmp: "{{ instances | dict2items | selectattr('value.roles.analytics_snmp', 'defined') | length >0 }}"
+- name: print analytics snmp presence
+  ansible.builtin.debug:
+    var: has_analytics_snmp
+- name: store analytics snmp presence into configuration
+  set_fact:
+    contrail_configuration: "{{ contrail_configuration | combine({'ANALYTICS_SNMP_ENABLE': has_analytics_snmp}) }}"
 
 - name: explicitly set OpenStack variables for Contrail
   no_log: True

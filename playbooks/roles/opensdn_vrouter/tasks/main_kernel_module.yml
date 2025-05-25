@@ -1,0 +1,20 @@
+- name: "Remove current kernel vrouter module file: {{ current_kernel_vrouter_module_filename.stdout }}"
+  ansible.builtin.file:
+    path: "{{ current_kernel_vrouter_module_filename.stdout }}"
+    state: absent
+
+- name: "Kernel module install/update"
+  ansible.builtin.include_role:
+    name: "{{ compose_role }}"
+  vars:
+    compose_state: present
+    compose_name: vrouter
+    compose_services: vrouter-kernel-init
+    compose_recreate: always
+    compose_dependencies: true
+
+- name: "Wait for current kernel vrouter module file: {{ current_kernel_vrouter_module_filename.stdout }}"
+  ansible.builtin.wait_for:
+    path: "{{ current_kernel_vrouter_module_filename.stdout }}"
+    state: present
+    msg: "Timeout to find {{ current_kernel_vrouter_module_filename.stdout }}"

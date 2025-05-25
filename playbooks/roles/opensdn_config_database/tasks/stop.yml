@@ -1,8 +1,6 @@
----
-- name: stop contrail config database
-  docker_compose:
-    project_src: /etc/contrail/config_database
-    state: absent
-  environment:
-    DOCKER_CLIENT_TIMEOUT: '120'
-    COMPOSE_HTTP_TIMEOUT: '120'
+- name: "stop config_database"
+  ansible.builtin.include_role:
+    name: "{{ compose_role }}"
+  vars:
+    compose_name: config_database
+    compose_state: absent
